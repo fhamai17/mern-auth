@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
+import {
+  signInStart,
+  signInSuccess,
+  signInFailure,
+} from "../redux/user/userSlice";
+import { useDispatch, useSelector } from "react-redux";
 const SignIn = () => {
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const {loading,error} = useSelector((state) => state.user)
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -14,8 +18,7 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      setError(false);
+      dispatch(signInStart());
       const res = await fetch("/api/auth/signin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -23,19 +26,18 @@ const SignIn = () => {
       });
       const data = await res.json();
       console.log(data);
-      setLoading(false);
-      if(data.success === false){
-        setError(true);
+      
+      if (data.success === false) {
+        dispatch(signInFailure(data.message));
         return;
       }
 
-      navigate('/');
+      dispatch(signInSuccess(data));
+      navigate("/");
     } catch (error) {
-      setLoading(false);
-      setError(true);
+      dispatch(signInFailure(error));
       console.log(error);
     }
-   
   };
 
   console.log(formData);
@@ -57,17 +59,20 @@ const SignIn = () => {
           className="bg-slate-100 p-3 rounded-lg"
           onChange={handleChange}
         />
-        <button disabled={loading} className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80">
-          {loading ? 'Loading...' : 'Sign In'}
+        <button
+          disabled={loading}
+          className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
+        >
+          {loading ? "Loading..." : "Sign In"}
         </button>
       </form>
       <div className="flex gap-2 mt-5">
-      <p>{`Don't have an account?`}</p>
+        <p>{`Don't have an account?`}</p>
         <Link to="/sign-up">
           <span className="text-blue-500">Sign up</span>
         </Link>
       </div>
-      <p className="text-red-700">{error && "Something went wrong!!!"}</p>
+      <p className="text-red-700">{error ? error || error.message || "Something went wrong!!!" : ''}</p>
     </div>
   );
 };
