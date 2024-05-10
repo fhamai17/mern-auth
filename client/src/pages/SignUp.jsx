@@ -29,6 +29,7 @@ const SignUp = () => {
         return;
       }
 
+      setError(false);
       navigate('/sign-in');
   
     } catch (error) {
