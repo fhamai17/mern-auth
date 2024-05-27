@@ -3,7 +3,7 @@ import { useRef, useState, useEffect } from "react";
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from "firebase/storage";
 import app from "../firebase";
 import { useDispatch } from "react-redux";
-import { updateUserStart, updateUserSuccess, updateUserFailure} from "../redux/user/userSlice";
+import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserFailure, deleteUserSuccess} from "../redux/user/userSlice";
 
 const Profile = () => {
   const fileRef = useRef(null);
@@ -27,6 +27,31 @@ const Profile = () => {
       setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
+  const handleDeleteAccount = async() =>
+    {
+      try {
+        dispatch(deleteUserStart());
+        const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        if(data.success === false){
+          dispatch(deleteUserFailure(data));
+          return;
+        }
+
+        dispatch(deleteUserSuccess(data));
+        setUpdateSuccess(true);
+        console.log(data);
+        
+      } catch (error) {
+        dispatch(deleteUserFailure(error));
+        console.log(error)
+      }
+    };
+
   const handleSubmit = async (e) =>
     {
       e.preventDefault();
@@ -40,6 +65,7 @@ const Profile = () => {
         const data = await res.json();
         if(data.success === false){
           dispatch(updateUserFailure(data));
+          return;
         }
 
         dispatch(updateUserSuccess(data));
@@ -47,6 +73,7 @@ const Profile = () => {
         console.log(data);
         
       } catch (error) {
+        dispatch(updateUserFailure(error));
         console.log(error)
       }
     };
@@ -128,7 +155,7 @@ const Profile = () => {
         </button>
       </form>
       <div className="flex justify-between mt-5">
-        <span className="text-red-700">Delete Account</span>
+        <span onClick={handleDeleteAccount} className="text-red-700">Delete Account</span>
         <span className="text-red-700">Sign Out</span>
       </div>
       <p  className="text-red-700 mt-5 text-center">{error && 'Something went wrong'}</p>
