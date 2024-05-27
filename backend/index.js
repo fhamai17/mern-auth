@@ -6,6 +6,7 @@ import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -15,10 +16,11 @@ mongoose.connect(process.env.MONGO_URI).then(()=>{
     console.log(err)
 });
 
-const app = express()
+const app = express();
 const port = 3000
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cookieParser());
 // const corsOptions = {
 //   origin: 'http://localhost:3000',
 //   credentials: true,
